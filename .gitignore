@@ -1,0 +1,11 @@
+.next/
+node_modules/
+.tools/
+.tmp-verify/
+.vercel/
+.env.local
+.env*.local
+dev-server.log
+*.log
+verification-screenshot.png
+*.tsbuildinfo
