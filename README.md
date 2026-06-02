@@ -1,35 +1,56 @@
-# Unlimited Split Brick Breaker
+# 無限分裂打磚塊
 
-Next.js + TypeScript + Canvas 2D implementation of a dense Many Bricks Breaker-style game.
+Next.js + TypeScript + Canvas 2D 製作的 Many Bricks Breaker 風格關卡制打磚塊遊戲。
 
-## Features
+## 特色
 
-- 108 fixed-seed procedural levels.
-- Level 1 starts with 80+ breakable bricks; levels 91-108 target 450-700 breakable bricks.
-- Unlimited x2 split behavior with no hard ball cap.
-- +3 power bricks, metal bricks, HP bricks, lives, score, best score.
-- Debug level select, previous/next level controls, and restart.
-- `localStorage` progress for best score, highest unlocked level, and last played level.
-- Canvas debug overlay with FPS, active balls, bricks, collision checks, pending spawns, and render quality.
-- Vercel-ready Next.js App Router project.
+- 108 個固定種子關卡。
+- 正方形高密度小磚塊，Level 1 起至少 400 個可破壞磚塊。
+- Level 91-108 至少 1200 個可破壞磚塊。
+- 所有关卡固定 `POWER_DROP_RATE = 0.5`，約 50% 可破壞磚塊帶道具。
+- 道具比例：x2 約 50%、+3 約 30%、WIDE/寬 約 20%。
+- x2 會讓目前所有 active balls 翻倍，沒有球數上限。
+- +3 會從擋板發射三顆小球。
+- WIDE/寬 會讓擋板變寬約 16 秒，重複取得會刷新時間。
+- 金屬磚塊不可摧毀、不掉道具、不計入通關條件。
+- 支援 localStorage 保存最高分、最高解鎖關卡、最後遊玩關卡、音訊與除錯設定。
+- Debug/除錯面板預設隱藏，不覆蓋 Canvas 右下角。
+- 切換 App、鎖屏、切換分頁或頁面不可見時會暫停音樂與遊戲更新。
+- GitHub push 觸發 Vercel 自動部署。
 
-## Run
-
-```powershell
-cd D:\Codex_Web_Games\UnlimitedSplitBrickBreaker
-npm install
-npm run dev
-```
-
-Then open `http://localhost:3000`.
-
-## Verify
+## 執行
 
 ```powershell
-npm run lint
-npm run build
+Set-Location "D:\Codex_Web_Games\UnlimitedSplitBrickBreaker"
+pnpm install
+pnpm run dev
 ```
 
-## Controls
+開啟 `http://localhost:3000`。
 
-Move the paddle with mouse or touch. Press Start or tap/click the canvas to launch.
+## 驗證
+
+每次修改後都要執行：
+
+```powershell
+pnpm run build
+pnpm run lint
+pnpm exec tsc --noEmit
+```
+
+全部通過後再：
+
+```powershell
+git add .
+git commit -m "<change summary>"
+git push
+```
+
+Vercel 會根據 GitHub `main` 分支自動部署。
+
+## 操作
+
+- 滑鼠或觸控控制底部擋板。
+- 按「開始」或點擊 Canvas 發射小球。
+- 按「靜音」可切換音樂與音效。
+- 按「除錯」可顯示或隱藏除錯面板。

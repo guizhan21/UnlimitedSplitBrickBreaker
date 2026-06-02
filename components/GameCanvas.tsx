@@ -11,6 +11,8 @@ export type GameCanvasHandle = {
   nextLevel: () => void;
   previousLevel: () => void;
   setLevel: (level: number) => void;
+  setBackgroundPaused: (paused: boolean) => void;
+  setMusicState: (state: "muted" | "playing" | "paused") => void;
 };
 
 type Props = {
@@ -43,7 +45,9 @@ export const GameCanvas = forwardRef<GameCanvasHandle, Props>(function GameCanva
     restart: () => engineRef.current?.restart(),
     nextLevel: () => engineRef.current?.nextLevel(),
     previousLevel: () => engineRef.current?.previousLevel(),
-    setLevel: (level: number) => engineRef.current?.setLevel(level)
+    setLevel: (level: number) => engineRef.current?.setLevel(level),
+    setBackgroundPaused: (paused: boolean) => engineRef.current?.setBackgroundPaused(paused),
+    setMusicState: (state: "muted" | "playing" | "paused") => engineRef.current?.setMusicState(state)
   }));
 
   function movePointer(clientX: number) {
@@ -59,7 +63,7 @@ export const GameCanvas = forwardRef<GameCanvasHandle, Props>(function GameCanva
       className="game-canvas"
       width={CANVAS_WIDTH}
       height={CANVAS_HEIGHT}
-      aria-label={ready ? "Unlimited Split Brick Breaker game canvas" : "Loading game canvas"}
+      aria-label={ready ? "無限分裂打磚塊遊戲畫布" : "載入遊戲畫布"}
       onMouseMove={(event) => movePointer(event.clientX)}
       onPointerDown={(event) => {
         movePointer(event.clientX);

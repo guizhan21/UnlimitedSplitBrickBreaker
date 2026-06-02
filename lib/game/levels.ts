@@ -1,4 +1,4 @@
-import { BRICK_BOTTOM, BRICK_TOP, CANVAS_WIDTH, TOTAL_LEVELS, WALL } from "./constants";
+import { BRICK_BOTTOM, BRICK_TOP, CANVAS_WIDTH, POWER_DROP_RATE, TOTAL_LEVELS, WALL } from "./constants";
 import type { Brick, BrickKind, Level, LevelLayoutType } from "./types";
 
 type GridSpec = {
@@ -35,8 +35,6 @@ const patterns = [
   "boss_wall"
 ] as const;
 
-const POWER_DROP_RATE = 0.5;
-
 function key(row: number, col: number) {
   return `${row}:${col}`;
 }
@@ -56,12 +54,12 @@ function mulberry32(seed: number) {
 }
 
 function brickTarget(level: number) {
-  if (level === 1) return 300;
-  if (level <= 10) return 320 + Math.floor(((level - 2) / 8) * 100);
-  if (level <= 30) return 400 + Math.floor(((level - 11) / 19) * 150);
-  if (level <= 60) return 500 + Math.floor(((level - 31) / 29) * 200);
-  if (level <= 90) return 650 + Math.floor(((level - 61) / 29) * 200);
-  return 750 + Math.floor(((level - 91) / 17) * 200);
+  if (level === 1) return 400;
+  if (level <= 10) return 450 + Math.floor(((level - 2) / 8) * 200);
+  if (level <= 30) return 600 + Math.floor(((level - 11) / 19) * 250);
+  if (level <= 60) return 800 + Math.floor(((level - 31) / 29) * 300);
+  if (level <= 90) return 1000 + Math.floor(((level - 61) / 29) * 300);
+  return 1200 + Math.floor(((level - 91) / 17) * 200);
 }
 
 function breakableHp(level: number, rng: () => number) {
@@ -114,8 +112,8 @@ function chooseLayout(level: number): LevelLayoutType {
 }
 
 function makeGrid(level: number): GridSpec {
-  const size = level >= 61 ? 14 : level >= 11 ? 16 : 18;
-  const gap = level >= 91 ? 2 : level >= 31 ? 2 : 3;
+  const size = level >= 31 ? 14 : level >= 2 ? 16 : 16;
+  const gap = level >= 61 ? 1 : level >= 11 ? 2 : 2;
   const usableWidth = CANVAS_WIDTH - WALL * 2;
   const columns = Math.floor((usableWidth + gap) / (size + gap));
   const rows = Math.floor((BRICK_BOTTOM - BRICK_TOP + gap) / (size + gap));
@@ -510,8 +508,8 @@ function refillBreakables(target: number, metal: Set<string>, breakableCells: Se
 
 function choosePowerKind(rng: () => number): BrickKind {
   const roll = rng();
-  if (roll < 0.347) return "x2";
-  if (roll < 0.72) return "plus3";
+  if (roll < 0.5) return "x2";
+  if (roll < 0.8) return "plus3";
   return "expand";
 }
 
@@ -763,5 +761,17 @@ export function generateLevel(levelNumber: number): Level {
     id += 1;
   }
 
-  return { number, seed, pattern, layoutType, cageCount: cage.cageCount, reachableCheck, bricks };
+  return {
+    number,
+    seed,
+    pattern,
+    layoutType,
+    cageCount: cage.cageCount,
+    reachableCheck,
+    brickSize: spec.width,
+    brickGap: spec.gap,
+    gridRows: spec.rows,
+    gridColumns: spec.columns,
+    bricks
+  };
 }

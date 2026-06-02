@@ -47,7 +47,7 @@ function drawBreakableBrick(ctx: CanvasRenderingContext2D, brick: Brick) {
   ctx.fillText(String(brick.hp), brick.x + brick.width / 2, brick.y + brick.height / 2 + 0.5);
 
   if (brick.kind !== "normal") {
-    const label = brick.kind === "x2" ? "x2" : brick.kind === "plus3" ? "+3" : "W";
+    const label = brick.kind === "x2" ? "x2" : brick.kind === "plus3" ? "+3" : "寬";
     ctx.fillStyle = "rgba(8, 16, 21, 0.72)";
     ctx.font = brick.width <= 14 ? "700 5px Arial" : "700 6px Arial";
     ctx.fillText(label, brick.x + brick.width / 2, brick.y + brick.height - 3);
@@ -113,10 +113,11 @@ export function renderGame(
 
   ctx.fillStyle = "#eef6fb";
   ctx.font = "700 22px Arial";
-  ctx.fillText(`Level ${snapshot.level} / ${TOTAL_LEVELS}`, 34, 32);
+  ctx.fillText(`關卡 ${snapshot.level} / ${TOTAL_LEVELS}`, 34, 32);
   ctx.font = "14px Arial";
   ctx.fillStyle = "#8fa5b3";
-  ctx.fillText(`Score ${snapshot.score}   Lives ${snapshot.lives}   Best ${snapshot.bestScore}`, 34, 56);
+  const wide = snapshot.stats.wideSeconds > 0 ? `   變寬 ${snapshot.stats.wideSeconds}s` : "";
+  ctx.fillText(`分數 ${snapshot.score}   生命 ${snapshot.lives}   最高分 ${snapshot.bestScore}${wide}`, 34, 56);
 
   for (const brick of bricks) {
     if (!brick.alive) continue;
@@ -145,34 +146,16 @@ export function renderGame(
     ctx.textAlign = "center";
     const label =
       snapshot.status === "all-clear"
-        ? "All 108 Levels Cleared"
+        ? "已通關全部 108 關"
         : snapshot.status === "game-over"
-          ? "Game Over"
+          ? "遊戲結束"
           : snapshot.status === "level-clear"
-            ? "Level Clear"
-            : "Click Start";
+            ? "關卡完成"
+            : "點擊開始";
     ctx.fillText(label, CANVAS_WIDTH / 2, 376);
     ctx.font = "15px Arial";
     ctx.fillStyle = "#8fa5b3";
-    ctx.fillText("Move the paddle with mouse or touch. Split bricks can grow without a ball cap.", CANVAS_WIDTH / 2, 408);
+    ctx.fillText("使用滑鼠或觸控移動擋板。分裂道具沒有小球上限。", CANVAS_WIDTH / 2, 408);
     ctx.textAlign = "left";
   }
-
-  ctx.fillStyle = "rgba(17, 24, 32, 0.82)";
-  ctx.fillRect(CANVAS_WIDTH - 248, CANVAS_HEIGHT - 174, 224, 150);
-  ctx.fillStyle = "#8fa5b3";
-  ctx.font = "12px Arial";
-  const lines = [
-    `FPS ${snapshot.stats.fps}`,
-    `balls ${snapshot.stats.balls}`,
-    `bricks ${snapshot.stats.breakableBricks}`,
-    `solid ${snapshot.stats.metalBricks}`,
-    `layout ${snapshot.stats.layoutType}`,
-    `cages ${snapshot.stats.cageCount}`,
-    `reachable ${snapshot.stats.reachableCheck ? "yes" : "no"}`,
-    `checks ${snapshot.stats.collisionChecks}`,
-    `pending ${snapshot.stats.pendingSpawns}`,
-    `quality ${snapshot.stats.renderQuality}`
-  ];
-  lines.forEach((line, index) => ctx.fillText(line, CANVAS_WIDTH - 236, CANVAS_HEIGHT - 154 + index * 15));
 }

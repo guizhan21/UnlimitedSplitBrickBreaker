@@ -5,14 +5,42 @@ const PLAYFIELD_LEFT = WALL;
 const PLAYFIELD_RIGHT = CANVAS_WIDTH - WALL;
 const PLAYFIELD_TOP = HEADER_HEIGHT;
 
+export function normalizeBallSpeed(ball: Ball, targetSpeed: number) {
+  const len = Math.hypot(ball.vx, ball.vy);
+  if (!Number.isFinite(len) || len <= 0.0001) {
+    ball.vx = targetSpeed * 0.5;
+    ball.vy = -targetSpeed * 0.866;
+    return;
+  }
+  ball.vx = (ball.vx / len) * targetSpeed;
+  ball.vy = (ball.vy / len) * targetSpeed;
+}
+
+export function avoidBadAngles(ball: Ball, targetSpeed: number) {
+  const minVertical = targetSpeed * 0.18;
+  if (Math.abs(ball.vy) < minVertical) {
+    ball.vy = ball.vy < 0 ? -minVertical : minVertical;
+    normalizeBallSpeed(ball, targetSpeed);
+  }
+
+  const minHorizontal = targetSpeed * 0.04;
+  if (Math.abs(ball.vx) < minHorizontal) {
+    ball.vx = ball.vx < 0 ? -minHorizontal : minHorizontal;
+    normalizeBallSpeed(ball, targetSpeed);
+  }
+}
+
 export function hitPaddle(ball: Ball, paddleX: number, paddleWidth = PADDLE_WIDTH) {
   const withinX = ball.x + ball.radius > paddleX && ball.x - ball.radius < paddleX + paddleWidth;
   const withinY = ball.y + ball.radius > PADDLE_Y && ball.y - ball.radius < PADDLE_Y + PADDLE_HEIGHT;
   if (!withinX || !withinY || ball.vy <= 0) return false;
-  const t = (ball.x - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
   const speed = Math.hypot(ball.vx, ball.vy);
-  ball.vx = t * speed * 0.78;
-  ball.vy = -Math.sqrt(Math.max(80, speed * speed - ball.vx * ball.vx));
+  const hit = (ball.x - (paddleX + paddleWidth / 2)) / (paddleWidth / 2);
+  const clamped = Math.max(-1, Math.min(1, hit));
+  const maxAngle = Math.PI * 0.38;
+  const angle = -Math.PI / 2 + clamped * maxAngle;
+  ball.vx = Math.cos(angle) * speed;
+  ball.vy = Math.sin(angle) * speed;
   ball.y = PADDLE_Y - ball.radius - 0.5;
   return true;
 }
@@ -38,7 +66,7 @@ export function hitWalls(ball: Ball) {
 }
 
 export function isOut(ball: Ball) {
-  return ball.y - ball.radius > CANVAS_HEIGHT + 16;
+  return ball.y - ball.radius > CANVAS_HEIGHT;
 }
 
 export function collideBrick(ball: Ball, brick: Brick) {

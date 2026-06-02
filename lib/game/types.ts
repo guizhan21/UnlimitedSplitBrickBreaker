@@ -65,6 +65,10 @@ export type Level = {
   layoutType: LevelLayoutType;
   cageCount: number;
   reachableCheck: boolean;
+  brickSize: number;
+  brickGap: number;
+  gridRows: number;
+  gridColumns: number;
   bricks: Brick[];
 };
 
@@ -73,12 +77,26 @@ export type DebugStats = {
   balls: number;
   breakableBricks: number;
   metalBricks: number;
+  powerDropRate: number;
+  brickSize: number;
+  brickGap: number;
+  gridRows: number;
+  gridColumns: number;
   layoutType: LevelLayoutType;
   cageCount: number;
   reachableCheck: boolean;
   collisionChecks: number;
+  outOfBoundsCorrections: number;
+  wallCollisions: number;
+  paddleCollisions: number;
+  brickCollisions: number;
+  metalCollisions: number;
+  subSteps: number;
   pendingSpawns: number;
   renderQuality: string;
+  musicState: "muted" | "playing" | "paused";
+  pauseReason: "user" | "background" | null;
+  wideSeconds: number;
 };
 
 export type GameSnapshot = {
@@ -88,6 +106,7 @@ export type GameSnapshot = {
   bestScore: number;
   highestUnlockedLevel: number;
   status: "ready" | "playing" | "level-clear" | "game-over" | "all-clear";
+  pauseReason: "user" | "background" | null;
   stats: DebugStats;
 };
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { STORAGE_KEYS } from "@/lib/game/constants";
+
 type SoundKind = "wall" | "paddle" | "brick" | "metal" | "power";
 
 const SOUND_PITCH: Record<SoundKind, number> = {
@@ -10,17 +12,16 @@ const SOUND_PITCH: Record<SoundKind, number> = {
   power: 1180
 };
 
-const MUTE_STORAGE_KEY = "usb_audioMuted";
-
 export class GameAudio {
   private music: HTMLAudioElement | null = null;
   private context: AudioContext | null = null;
   private muted = false;
   private lastSoundAt = 0;
+  private wantsMusic = false;
 
   constructor() {
     if (typeof window === "undefined") return;
-    this.muted = window.localStorage.getItem(MUTE_STORAGE_KEY) === "true";
+    this.muted = window.localStorage.getItem(STORAGE_KEYS.audioMuted) === "true";
     this.music = new Audio("/audio/pinball-kitchen.mp3");
     this.music.loop = true;
     this.music.volume = 0.34;
@@ -30,20 +31,50 @@ export class GameAudio {
 
   async start() {
     if (this.muted) return;
+    this.wantsMusic = true;
     this.context ??= new AudioContext();
     if (this.context.state === "suspended") await this.context.resume();
     await this.music?.play().catch(() => undefined);
   }
 
+  async resumeMusicOnUserGesture() {
+    if (!this.wantsMusic || this.muted) return;
+    await this.start();
+  }
+
   setMuted(nextMuted: boolean) {
     this.muted = nextMuted;
-    if (typeof window !== "undefined") window.localStorage.setItem(MUTE_STORAGE_KEY, String(nextMuted));
+    if (typeof window !== "undefined") window.localStorage.setItem(STORAGE_KEYS.audioMuted, String(nextMuted));
     if (this.music) this.music.muted = nextMuted;
-    if (nextMuted) this.music?.pause();
+    if (nextMuted) {
+      this.wantsMusic = false;
+      this.music?.pause();
+    }
   }
 
   isMuted() {
     return this.muted;
+  }
+
+  isPlaying() {
+    return !!this.music && !this.music.paused && !this.muted;
+  }
+
+  pauseAll() {
+    this.music?.pause();
+    void this.context?.suspend().catch(() => undefined);
+  }
+
+  dispose() {
+    this.pauseAll();
+    if (this.music) {
+      this.music.pause();
+      this.music.src = "";
+      this.music.load();
+    }
+    void this.context?.close().catch(() => undefined);
+    this.music = null;
+    this.context = null;
   }
 
   play(sound: SoundKind) {
