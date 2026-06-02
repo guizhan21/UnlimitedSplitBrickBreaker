@@ -35,6 +35,8 @@ const patterns = [
   "boss_wall"
 ] as const;
 
+const POWER_DROP_RATE = 0.5;
+
 function key(row: number, col: number) {
   return `${row}:${col}`;
 }
@@ -506,30 +508,6 @@ function refillBreakables(target: number, metal: Set<string>, breakableCells: Se
   }
 }
 
-function powerChance(level: number) {
-  if (level <= 10) return 0.35 + ((level - 1) / 9) * 0.1;
-  if (level <= 30) return 0.3 + ((level - 11) / 19) * 0.1;
-  if (level <= 60) return 0.24 + ((level - 31) / 29) * 0.1;
-  if (level <= 90) return 0.18 + ((level - 61) / 29) * 0.1;
-  return 0.16 + ((level - 91) / 17) * 0.08;
-}
-
-function minPowerRatio(level: number) {
-  if (level <= 10) return 0.35;
-  if (level <= 30) return 0.3;
-  if (level <= 60) return 0.24;
-  if (level <= 90) return 0.18;
-  return 0.16;
-}
-
-function maxPowerRatio(level: number) {
-  if (level <= 10) return 0.45;
-  if (level <= 30) return 0.4;
-  if (level <= 60) return 0.34;
-  if (level <= 90) return 0.28;
-  return 0.24;
-}
-
 function choosePowerKind(rng: () => number): BrickKind {
   const roll = rng();
   if (roll < 0.347) return "x2";
@@ -756,17 +734,16 @@ export function generateLevel(levelNumber: number): Level {
   }
   const powerKinds = new Map<string, BrickKind>();
   const breakableList = [...breakableCells];
+  const targetPowerCount = Math.round(breakableList.length * POWER_DROP_RATE);
   for (const cell of breakableList) {
-    if (rng() < powerChance(number)) powerKinds.set(cell, choosePowerKind(rng));
+    if (rng() < POWER_DROP_RATE) powerKinds.set(cell, choosePowerKind(rng));
   }
-  const minPowerCount = Math.ceil(breakableList.length * minPowerRatio(number));
-  const maxPowerCount = Math.floor(breakableList.length * maxPowerRatio(number));
   for (let index = breakableList.length - 1; index >= 0; index -= 1) {
-    if (powerKinds.size <= maxPowerCount) break;
+    if (powerKinds.size <= targetPowerCount) break;
     powerKinds.delete(breakableList[index]);
   }
   for (const cell of breakableList) {
-    if (powerKinds.size >= minPowerCount) break;
+    if (powerKinds.size >= targetPowerCount) break;
     if (!powerKinds.has(cell)) powerKinds.set(cell, choosePowerKind(rng));
   }
   if (number === 1 && breakableList.length >= 3) {
@@ -775,7 +752,7 @@ export function generateLevel(levelNumber: number): Level {
     powerKinds.set(breakableList[2], "expand");
   }
   for (let index = breakableList.length - 1; index >= 3; index -= 1) {
-    if (powerKinds.size <= maxPowerCount) break;
+    if (powerKinds.size <= targetPowerCount) break;
     powerKinds.delete(breakableList[index]);
   }
 

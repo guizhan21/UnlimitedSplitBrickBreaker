@@ -81,14 +81,10 @@ Debug overlay additions:
 
 - Added `expand` power bricks, rendered as pink `W` bricks.
 - Breaking an `expand` brick increases paddle width for the current level.
-- Power brick ratios were raised and minimum-filled after generation:
-  - Levels 1-10: 35%-45% target range.
-  - Levels 11-30: 30%-40% target range.
-  - Levels 31-60: 24%-34% target range.
-  - Levels 61-90: 18%-28% target range.
-  - Levels 91-108: 16%-24% target range.
+- Power brick drop rate is now fixed at `POWER_DROP_RATE = 0.5` for every level.
+- The old level-based decreasing power curve has been removed.
 - Power mix includes `x2`, `+3`, and `expand`; x2 remains unlimited and uncapped.
-- Level 1 is dense but easy: 300 breakable bricks, 0 metal bricks, mostly HP 1, some HP 2, and all three power-up kinds appear.
+- Level 1 is dense but easy: 300 breakable bricks, mostly HP 1, some HP 2, and all three power-up kinds appear.
 
 ## Verification
 
@@ -113,9 +109,11 @@ Latest verification after cage layout update:
 - Latest shaped-layout verification: no adjacent layout repeats, no unreachable generated levels, final level is `fortress_core`.
 - Latest power ratio check: 1-10 = 23.1%, 11-40 = 16.8%, 41-80 = 13.2%, 81-108 = 11.2%.
 - Browser verification: level 7 reports `smile_face`, `Reachable: yes`, debug fields visible, and no console errors.
-- Latest dense-start verification: minimum breakable counts are 300 / 400 / 500 / 650 / 750 by range; Level 1 has 300 breakable bricks, 0 metal, HP distribution 264x HP1 and 36x HP2, and x2/+3/WIDE all present.
+- Latest dense-start verification: minimum breakable counts are 300 / 400 / 500 / 650 / 750 by range; Level 1 has 300 breakable bricks, structural indestructible bricks, mostly HP1/HP2 destructible bricks, and x2/+3/WIDE all present.
 - Latest power ratio check after dense-start update: 1-10 = 40.0%, 11-30 = 35.4%, 31-60 = 28.9%, 61-90 = 22.9%, 91-108 = 20.2%.
-- Browser verification: level 1 reports `full_dense`, `Bricks 300`, `Metal bricks: 0`, `Reachable: yes`, and no console errors.
+- Latest fixed power-drop verification: all 108 levels generate about 50% power bricks; samples are Level 1 = 150/300, Level 60 = 350/700, Level 90 = 425/850, and Level 108 = 475/950.
+- Latest fixed power mix across 108 levels: x2 = 11921, +3 = 12879, WIDE = 9666.
+- Browser verification: level 1 reports dense square bricks, metal debug count, `Reachable: yes`, and no console errors.
 
 ## Square Brick Update
 
