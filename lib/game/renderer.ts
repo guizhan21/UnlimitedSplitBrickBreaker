@@ -94,6 +94,74 @@ function drawMetalBrick(ctx: CanvasRenderingContext2D, brick: Brick) {
   ctx.stroke();
 }
 
+function drawFireworks(ctx: CanvasRenderingContext2D, time: number) {
+  const bursts = [
+    { x: 160, y: 190, color: "#f5c35b", delay: 0 },
+    { x: 360, y: 150, color: "#65e5b5", delay: 0.35 },
+    { x: 555, y: 210, color: "#f28bd4", delay: 0.7 },
+    { x: 250, y: 255, color: "#72b7ff", delay: 1.05 },
+    { x: 470, y: 285, color: "#ff7c70", delay: 1.4 }
+  ];
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  for (const burst of bursts) {
+    const phase = ((time + burst.delay) % 1.8) / 1.8;
+    const radius = 16 + phase * 74;
+    const alpha = 1 - phase;
+    for (let i = 0; i < 18; i += 1) {
+      const angle = (Math.PI * 2 * i) / 18 + burst.delay;
+      const x = burst.x + Math.cos(angle) * radius;
+      const y = burst.y + Math.sin(angle) * radius;
+      ctx.fillStyle = burst.color;
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(x, y, 2.2 + alpha * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawLevelClearOverlay(ctx: CanvasRenderingContext2D, snapshot: GameSnapshot) {
+  const time = (typeof performance !== "undefined" ? performance.now() : Date.now()) / 1000;
+  drawFireworks(ctx, time);
+
+  ctx.fillStyle = "rgba(5, 9, 12, 0.78)";
+  ctx.fillRect(WALL + 34, 300, CANVAS_WIDTH - WALL * 2 - 68, 260);
+  ctx.strokeStyle = "rgba(245, 195, 91, 0.75)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(WALL + 34.5, 300.5, CANVAS_WIDTH - WALL * 2 - 69, 259);
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#f5c35b";
+  ctx.font = "800 34px Arial";
+  ctx.fillText(snapshot.status === "all-clear" ? "全部關卡完成！" : "關卡完成！", CANVAS_WIDTH / 2, 350);
+
+  ctx.fillStyle = "#eef6fb";
+  ctx.font = "700 19px Arial";
+  ctx.fillText(`第 ${snapshot.level} 關已通關`, CANVAS_WIDTH / 2, 388);
+
+  ctx.font = "15px Arial";
+  ctx.fillStyle = "#b8c8d3";
+  ctx.fillText(`本關分數：${snapshot.levelScore}`, CANVAS_WIDTH / 2, 426);
+  ctx.fillText(`獎勵分數：${snapshot.bonusScore}`, CANVAS_WIDTH / 2, 454);
+  ctx.fillText(`目前總分：${snapshot.score}`, CANVAS_WIDTH / 2, 482);
+
+  ctx.fillStyle = "#65e5b5";
+  ctx.font = "700 16px Arial";
+  const nextText =
+    snapshot.status === "all-clear"
+      ? "已通關全部關卡，可按「重新開始」再挑戰"
+      : `按「下一關」繼續，或 ${snapshot.levelClearCountdown}s 後自動進入下一關`;
+  ctx.fillText(nextText, CANVAS_WIDTH / 2, 520);
+
+  ctx.fillStyle = "#8fa5b3";
+  ctx.font = "13px Arial";
+  ctx.fillText("也可以按「重新挑戰」重新挑戰本關", CANVAS_WIDTH / 2, 542);
+  ctx.textAlign = "left";
+}
+
 export function renderGame(
   ctx: CanvasRenderingContext2D,
   bricks: Brick[],
@@ -138,20 +206,15 @@ export function renderGame(
     ctx.fill();
   }
 
-  if (snapshot.status !== "playing") {
+  if (snapshot.status === "level-clear" || snapshot.status === "all-clear") {
+    drawLevelClearOverlay(ctx, snapshot);
+  } else if (snapshot.status !== "playing") {
     ctx.fillStyle = "rgba(5, 9, 12, 0.72)";
     ctx.fillRect(WALL, 300, CANVAS_WIDTH - WALL * 2, 160);
     ctx.fillStyle = "#eef6fb";
     ctx.font = "700 30px Arial";
     ctx.textAlign = "center";
-    const label =
-      snapshot.status === "all-clear"
-        ? "已通關全部 108 關"
-        : snapshot.status === "game-over"
-          ? "遊戲結束"
-          : snapshot.status === "level-clear"
-            ? "關卡完成"
-            : "點擊開始";
+    const label = snapshot.status === "game-over" ? "遊戲結束" : "點擊開始";
     ctx.fillText(label, CANVAS_WIDTH / 2, 376);
     ctx.font = "15px Arial";
     ctx.fillStyle = "#8fa5b3";

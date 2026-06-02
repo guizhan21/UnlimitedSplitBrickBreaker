@@ -103,6 +103,9 @@ export type GameSnapshot = {
   level: number;
   lives: number;
   score: number;
+  levelScore: number;
+  bonusScore: number;
+  levelClearCountdown: number;
   bestScore: number;
   highestUnlockedLevel: number;
   status: "ready" | "playing" | "level-clear" | "game-over" | "all-clear";

@@ -20,6 +20,7 @@ import { renderGame } from "./renderer";
 import type { Ball, Brick, GameCallbacks, GameSnapshot, LevelLayoutType, SpawnRequest } from "./types";
 
 const BRICK_BUCKET_SIZE = 24;
+const LEVEL_CLEAR_COUNTDOWN = 8;
 function readNumber(key: string, fallback: number) {
   if (typeof window === "undefined") return fallback;
   const value = Number(window.localStorage.getItem(key));
@@ -51,6 +52,10 @@ export class BrickBreakerEngine {
   private level = 1;
   private lives = INITIAL_LIVES;
   private score = 0;
+  private levelStartScore = 0;
+  private bonusScore = 0;
+  private levelClearTimer = 0;
+  private lastClearCountdown = 0;
   private bestScore = 0;
   private highestUnlockedLevel = 1;
   private status: GameSnapshot["status"] = "ready";
@@ -148,6 +153,9 @@ export class BrickBreakerEngine {
       level: this.level,
       lives: this.lives,
       score: this.score,
+      levelScore: Math.max(0, this.score - this.levelStartScore - this.bonusScore),
+      bonusScore: this.bonusScore,
+      levelClearCountdown: Math.ceil(this.levelClearTimer),
       bestScore: this.bestScore,
       highestUnlockedLevel: this.highestUnlockedLevel,
       status: this.status,
@@ -199,6 +207,10 @@ export class BrickBreakerEngine {
     this.lives = INITIAL_LIVES;
     this.paddleWidth = PADDLE_WIDTH;
     this.wideTimer = 0;
+    this.bonusScore = 0;
+    this.levelClearTimer = 0;
+    this.lastClearCountdown = 0;
+    this.levelStartScore = this.score;
     this.paddleX = CANVAS_WIDTH / 2 - this.paddleWidth / 2;
     writeNumber(STORAGE_KEYS.lastPlayedLevel, this.level);
     this.render();
@@ -215,6 +227,7 @@ export class BrickBreakerEngine {
       this.fpsTimer = 0;
       this.emit();
     }
+    if (this.status === "level-clear" && this.pauseReason !== "background") this.updateLevelClear(dt);
     if (this.status === "playing" && this.pauseReason !== "background") this.update(dt);
     this.decayBrickFeedback(dt);
     this.render();
@@ -269,6 +282,20 @@ export class BrickBreakerEngine {
       this.emit();
     }
     if (this.bricks.every((brick) => brick.kind === "indestructible" || !brick.alive)) this.clearLevel();
+  }
+
+  private updateLevelClear(dt: number) {
+    if (this.levelClearTimer <= 0) return;
+    this.levelClearTimer = Math.max(0, this.levelClearTimer - dt);
+    if (this.levelClearTimer === 0) {
+      this.nextLevel();
+      return;
+    }
+    const countdown = Math.ceil(this.levelClearTimer);
+    if (countdown !== this.lastClearCountdown) {
+      this.lastClearCountdown = countdown;
+      this.emit();
+    }
   }
 
   private hitBricks(ball: Ball) {
@@ -402,6 +429,19 @@ export class BrickBreakerEngine {
   }
 
   private clearLevel() {
+    if (this.status === "level-clear" || this.status === "all-clear") return;
+    this.balls.forEach((ball) => this.pool.release(ball));
+    this.balls = [];
+    this.spawnQueue = [];
+    this.wideTimer = 0;
+    this.bonusScore = this.level * 100 + this.lives * 250;
+    this.score += this.bonusScore;
+    if (this.score > this.bestScore) {
+      this.bestScore = this.score;
+      writeNumber(STORAGE_KEYS.bestScore, this.bestScore);
+    }
+    this.levelClearTimer = this.level >= TOTAL_LEVELS ? 0 : LEVEL_CLEAR_COUNTDOWN;
+    this.lastClearCountdown = Math.ceil(this.levelClearTimer);
     if (this.level >= TOTAL_LEVELS) {
       this.status = "all-clear";
       this.highestUnlockedLevel = TOTAL_LEVELS;

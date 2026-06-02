@@ -63,6 +63,30 @@ Latest comprehensive verification:
 - Metal bricks do not receive power-up kinds.
 - Destructible max HP remains <= 3.
 
+## Level Clear Celebration Update
+
+- Clearing all destructible bricks no longer immediately jumps into the next level.
+- The engine enters `level-clear`, releases active balls, clears pending spawns, and pauses physics/collision updates.
+- A Traditional Chinese clear screen is rendered on Canvas:
+  - `關卡完成！`
+  - `第 X 關已通關`
+  - `本關分數`
+  - `目前總分`
+  - `獎勵分數`
+  - next-level countdown text
+- Fireworks are drawn behind the clear summary while the level-clear screen is visible.
+- The side panel also shows level score, bonus score, and countdown.
+- Players can press `下一關` immediately or wait 8 seconds for auto-advance.
+- `重新挑戰` reloads the current level from the clear screen.
+- Final level uses the same celebration layer and shows all-clear completion text.
+
+Latest level-clear verification:
+
+- `pnpm run lint`: passed.
+- `pnpm exec tsc --noEmit`: passed.
+- `pnpm run build`: passed.
+- Type checks verify the new `levelScore`, `bonusScore`, and `levelClearCountdown` snapshot fields.
+
 ## Shaped And Cage Layout Update
 
 Added shaped layouts and metal rebound chamber layouts:

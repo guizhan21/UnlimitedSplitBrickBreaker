@@ -10,6 +10,9 @@ const initialSnapshot: GameSnapshot = {
   level: 1,
   lives: 3,
   score: 0,
+  levelScore: 0,
+  bonusScore: 0,
+  levelClearCountdown: 0,
   bestScore: 0,
   highestUnlockedLevel: 1,
   status: "ready",
@@ -204,6 +207,22 @@ export function GameShell() {
             <span>變寬</span>
             <strong>{snapshot.stats.wideSeconds > 0 ? `${snapshot.stats.wideSeconds}s` : "無"}</strong>
           </div>
+          {snapshot.status === "level-clear" || snapshot.status === "all-clear" ? (
+            <>
+              <div className="stat">
+                <span>本關分數</span>
+                <strong>{snapshot.levelScore}</strong>
+              </div>
+              <div className="stat">
+                <span>獎勵分數</span>
+                <strong>{snapshot.bonusScore}</strong>
+              </div>
+              <div className="stat">
+                <span>倒數</span>
+                <strong>{snapshot.levelClearCountdown > 0 ? `${snapshot.levelClearCountdown}s` : "完成"}</strong>
+              </div>
+            </>
+          ) : null}
         </section>
 
         <section className="controls" aria-label="遊戲控制">
@@ -214,7 +233,7 @@ export function GameShell() {
             {muted ? "開啟音樂" : "靜音"}
           </button>
           <button className="button" type="button" onClick={() => gameRef.current?.restart()}>
-            重新開始
+            重新挑戰
           </button>
           <button className="button" type="button" onClick={() => gameRef.current?.previousLevel()}>
             上一關
